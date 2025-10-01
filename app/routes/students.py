@@ -54,23 +54,30 @@ async def create_student(student: StudentCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=APIResponse)
 async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Obtener lista de estudiantes"""
-    students = db.query(Student).offset(skip).limit(limit).all()
-    total = db.query(Student).count()
-    
-    students_data = []
-    for student in students:
-        students_data.append({
-            "id": student.id,
-            "nombre": student.nombre,
-            "correo": student.correo,
-            "fecha_registro": student.fecha_registro.isoformat()
-        })
-    
-    return APIResponse(
-        message="Lista de estudiantes obtenida exitosamente",
-        data=students_data,
-        total=total
-    )
+    try:
+        students = db.query(Student).offset(skip).limit(limit).all()
+        
+        students_data = []
+        for student in students:
+            students_data.append({
+                "id": student.id,
+                "nombre": student.nombre,
+                "correo": student.correo,
+                "fecha_registro": student.fecha_registro.isoformat()
+            })
+        
+        return APIResponse(
+            message="Lista de estudiantes obtenida exitosamente",
+            data=students_data,
+            total=len(students_data)
+        )
+    except Exception as e:
+        print(f"Error en get_students: {e}")
+        return APIResponse(
+            message="Error al obtener estudiantes",
+            data=[],
+            total=0
+        )
 
 @router.get("/{student_id}", response_model=APIResponse)
 async def get_student(student_id: int, db: Session = Depends(get_db)):

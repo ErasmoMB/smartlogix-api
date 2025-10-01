@@ -10,8 +10,8 @@ from app.models.models import Base
 # Configuración de la base de datos
 class DatabaseConfig:
     # Variables de entorno para Cloud SQL
-    DB_USER = os.getenv("DB_USER", "smartlogix_user")
-    DB_PASSWORD = os.getenv("DB_PASSWORD", "smartlogix_password")
+    DB_USER = os.getenv("DB_USER", "postgres")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres123")
     DB_NAME = os.getenv("DB_NAME", "smartlogix_db")
     DB_HOST = os.getenv("DB_HOST", "localhost")
     DB_PORT = os.getenv("DB_PORT", "5432")
