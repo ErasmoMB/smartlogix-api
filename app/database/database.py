@@ -15,7 +15,6 @@ class DatabaseConfig:
     
     @classmethod
     def get_database_url(cls) -> str:
-        """Construir URL de conexión según el entorno"""
         if cls.CLOUD_SQL_CONNECTION_NAME:
             return f"postgresql+psycopg2://{cls.DB_USER}:{cls.DB_PASSWORD}@/{cls.DB_NAME}?host=/cloudsql/{cls.CLOUD_SQL_CONNECTION_NAME}"
         else:
@@ -42,11 +41,9 @@ engine = create_database_engine()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def create_tables():
-    """Crear todas las tablas en la base de datos"""
     Base.metadata.create_all(bind=engine)
 
 def get_db():
-    """Dependency para obtener sesión de base de datos"""
     db = SessionLocal()
     try:
         yield db
@@ -54,11 +51,10 @@ def get_db():
         db.close()
 
 def init_database():
-    """Inicializar la base de datos"""
     try:
         create_tables()
-        print("✅ Base de datos inicializada correctamente")
+        print("Base de datos inicializada correctamente")
         return True
     except Exception as e:
-        print(f"❌ Error al inicializar la base de datos: {e}")
+        print(f"Error al inicializar la base de datos: {e}")
         return False

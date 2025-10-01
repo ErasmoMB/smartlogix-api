@@ -76,7 +76,6 @@ async def create_enrollment(enrollment: EnrollmentCreate, db: Session = Depends(
 
 @router.put("/{enrollment_id}", response_model=APIResponse)
 async def update_enrollment(enrollment_id: int, enrollment_update: EnrollmentUpdate, db: Session = Depends(get_db)):
-    """Cambiar estado de matrícula (ej. a 'Aprobado', 'Desaprobado', 'Retirado')"""
     
     enrollment = db.query(Enrollment).filter(Enrollment.id == enrollment_id).first()
     if not enrollment:
@@ -123,7 +122,6 @@ async def update_enrollment(enrollment_id: int, enrollment_update: EnrollmentUpd
 
 @router.get("/", response_model=APIResponse)
 async def get_enrollments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Obtener lista de todas las matrículas"""
     try:
         enrollments = db.query(Enrollment, Student, Course).join(
             Student, Enrollment.student_id == Student.id
@@ -164,7 +162,6 @@ async def get_enrollments(skip: int = 0, limit: int = 100, db: Session = Depends
 
 @router.get("/{enrollment_id}", response_model=APIResponse)
 async def get_enrollment(enrollment_id: int, db: Session = Depends(get_db)):
-    """Obtener una matrícula específica por ID"""
     enrollment = db.query(Enrollment, Student, Course).join(
         Student, Enrollment.student_id == Student.id
     ).join(

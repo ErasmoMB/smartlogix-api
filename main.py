@@ -34,7 +34,6 @@ app.include_router(ai_success_predictor.router, prefix="/ai", tags=["🧠 AI Suc
 
 @app.get("/", response_model=APIResponse)
 async def root():
-    """Ruta principal de bienvenida"""
     return APIResponse(
         message="¡Bienvenido a SmartLogix API!",
         data={
@@ -61,7 +60,6 @@ async def root():
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Endpoint de salud para verificar que la API esté funcionando"""
     return HealthResponse(
         status="healthy",
         timestamp=datetime.now().isoformat(),
@@ -71,7 +69,6 @@ async def health_check():
 
 @app.get("/test", response_model=APIResponse)
 async def test_endpoint():
-    """Endpoint de prueba para verificar conectividad y configuración"""
     return APIResponse(
         message="¡Prueba exitosa!",
         data={
@@ -86,13 +83,12 @@ async def test_endpoint():
 
 @app.on_event("startup")
 async def startup_event():
-    """Inicializar la base de datos al iniciar la aplicación"""
-    print("🚀 Iniciando SmartLogix API...")
+    print("Iniciando SmartLogix API...")
     success = init_database()
     if success:
-        print("✅ SmartLogix API iniciada correctamente")
+        print("SmartLogix API iniciada correctamente")
     else:
-        print("⚠️ SmartLogix API iniciada con advertencias de base de datos")
+        print("SmartLogix API iniciada con advertencias de base de datos")
 
 if __name__ == "__main__":
     import uvicorn
