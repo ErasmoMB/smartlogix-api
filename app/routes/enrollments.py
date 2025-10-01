@@ -1,6 +1,3 @@
-"""
-Rutas para gestión de matrículas (enrollments)
-"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -13,9 +10,7 @@ router = APIRouter(prefix="/enrollments", tags=["enrollments"])
 
 @router.post("/", response_model=APIResponse, status_code=status.HTTP_201_CREATED)
 async def create_enrollment(enrollment: EnrollmentCreate, db: Session = Depends(get_db)):
-    """Matricular estudiante en un curso (asigna puntaje inicial = 20, sistema 0-20)"""
     
-    # Verificar que el estudiante existe
     student = db.query(Student).filter(Student.id == enrollment.student_id).first()
     if not student:
         raise HTTPException(
@@ -23,7 +18,6 @@ async def create_enrollment(enrollment: EnrollmentCreate, db: Session = Depends(
             detail="Estudiante no encontrado"
         )
     
-    # Verificar que el curso existe
     course = db.query(Course).filter(Course.id == enrollment.course_id).first()
     if not course:
         raise HTTPException(
@@ -31,7 +25,6 @@ async def create_enrollment(enrollment: EnrollmentCreate, db: Session = Depends(
             detail="Curso no encontrado"
         )
     
-    # Verificar si ya está matriculado
     existing_enrollment = db.query(Enrollment).filter(
         Enrollment.student_id == enrollment.student_id,
         Enrollment.course_id == enrollment.course_id
@@ -43,19 +36,17 @@ async def create_enrollment(enrollment: EnrollmentCreate, db: Session = Depends(
             detail="El estudiante ya está matriculado en este curso"
         )
     
-    # Crear nueva matrícula con puntaje inicial = 20 (sistema educativo peruano)
     db_enrollment = Enrollment(
         student_id=enrollment.student_id,
         course_id=enrollment.course_id,
         estado="Cursando",
-        puntaje=20  # Regla de negocio: puntaje inicial = 20 (escala 0-20)
+        puntaje=20 
     )
     
     db.add(db_enrollment)
     db.commit()
     db.refresh(db_enrollment)
     
-    # 🚀 SINCRONIZAR AUTOMÁTICAMENTE A BIGQUERY
     try:
         import requests
         sync_response = requests.post("https://smartlogix-api-250805843264.us-central1.run.app/sync/bigquery", timeout=10)
@@ -87,7 +78,6 @@ async def create_enrollment(enrollment: EnrollmentCreate, db: Session = Depends(
 async def update_enrollment(enrollment_id: int, enrollment_update: EnrollmentUpdate, db: Session = Depends(get_db)):
     """Cambiar estado de matrícula (ej. a 'Aprobado', 'Desaprobado', 'Retirado')"""
     
-    # Buscar la matrícula
     enrollment = db.query(Enrollment).filter(Enrollment.id == enrollment_id).first()
     if not enrollment:
         raise HTTPException(
@@ -95,7 +85,6 @@ async def update_enrollment(enrollment_id: int, enrollment_update: EnrollmentUpd
             detail="Matrícula no encontrada"
         )
     
-    # Validar estados permitidos (sistema educativo peruano)
     valid_states = ["Cursando", "Aprobado", "Desaprobado", "Retirado"]
     if enrollment_update.estado not in valid_states:
         raise HTTPException(
@@ -103,14 +92,12 @@ async def update_enrollment(enrollment_id: int, enrollment_update: EnrollmentUpd
             detail=f"Estado no válido. Estados permitidos: {', '.join(valid_states)}"
         )
     
-    # Actualizar estado
     old_estado = enrollment.estado
     enrollment.estado = enrollment_update.estado
     
     db.commit()
     db.refresh(enrollment)
     
-    # Obtener información del estudiante y curso para la respuesta
     student = db.query(Student).filter(Student.id == enrollment.student_id).first()
     course = db.query(Course).filter(Course.id == enrollment.course_id).first()
     

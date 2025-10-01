@@ -1,6 +1,3 @@
-"""
-Rutas para gestión de estudiantes
-"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -13,9 +10,7 @@ router = APIRouter(prefix="/students", tags=["students"])
 
 @router.post("/", response_model=APIResponse, status_code=status.HTTP_201_CREATED)
 async def create_student(student: StudentCreate, db: Session = Depends(get_db)):
-    """Registrar un nuevo estudiante"""
     
-    # Verificar si el correo ya existe
     existing_student = db.query(Student).filter(Student.correo == student.correo).first()
     if existing_student:
         raise HTTPException(
@@ -23,7 +18,6 @@ async def create_student(student: StudentCreate, db: Session = Depends(get_db)):
             detail="El correo electrónico ya está registrado"
         )
     
-    # Crear nuevo estudiante
     db_student = Student(
         nombre=student.nombre,
         correo=student.correo
@@ -33,13 +27,12 @@ async def create_student(student: StudentCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_student)
     
-    # 🚀 SINCRONIZAR AUTOMÁTICAMENTE A BIGQUERY
     try:
         import requests
         sync_response = requests.post("https://smartlogix-api-250805843264.us-central1.run.app/sync/bigquery", timeout=10)
-        print(f"🔄 Sincronización automática: {sync_response.status_code}")
+        print(f"Sincronización automática: {sync_response.status_code}")
     except Exception as e:
-        print(f"⚠️ Error en sincronización automática: {e}")
+        print(f"Error en sincronización automática: {e}")
     
     return APIResponse(
         message="Estudiante registrado exitosamente",
@@ -53,7 +46,6 @@ async def create_student(student: StudentCreate, db: Session = Depends(get_db)):
 
 @router.get("/", response_model=APIResponse)
 async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Obtener lista de estudiantes"""
     try:
         students = db.query(Student).offset(skip).limit(limit).all()
         
@@ -80,7 +72,6 @@ async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(ge
 
 @router.get("/{student_id}", response_model=APIResponse)
 async def get_student(student_id: int, db: Session = Depends(get_db)):
-    """Obtener un estudiante por ID"""
     student = db.query(Student).filter(Student.id == student_id).first()
     
     if not student:
@@ -101,10 +92,8 @@ async def get_student(student_id: int, db: Session = Depends(get_db)):
 
 @router.get("/{student_id}/enrollments", response_model=APIResponse)
 async def get_student_enrollments(student_id: int, db: Session = Depends(get_db)):
-    """Listar cursos donde está matriculado un estudiante"""
     from app.models.models import Enrollment, Course
     
-    # Verificar que el estudiante existe
     student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(
@@ -112,7 +101,6 @@ async def get_student_enrollments(student_id: int, db: Session = Depends(get_db)
             detail="Estudiante no encontrado"
         )
     
-    # Obtener matrículas con información del curso
     enrollments = db.query(Enrollment, Course).join(
         Course, Enrollment.course_id == Course.id
     ).filter(Enrollment.student_id == student_id).all()

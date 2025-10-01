@@ -1,11 +1,7 @@
-"""
-Esquemas Pydantic para SmartLogix API
-"""
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
 
-# Esquemas para Student
 class StudentBase(BaseModel):
     nombre: str
     correo: EmailStr
@@ -20,7 +16,6 @@ class StudentResponse(StudentBase):
     class Config:
         from_attributes = True
 
-# Esquemas para Course
 class CourseBase(BaseModel):
     titulo: str
     descripcion: Optional[str] = None
@@ -35,7 +30,6 @@ class CourseResponse(CourseBase):
     class Config:
         from_attributes = True
 
-# Esquemas para Enrollment
 class EnrollmentBase(BaseModel):
     student_id: int
     course_id: int
@@ -55,14 +49,12 @@ class EnrollmentResponse(EnrollmentBase):
     class Config:
         from_attributes = True
 
-# Esquemas con relaciones
 class StudentWithEnrollments(StudentResponse):
     enrollments: List[EnrollmentResponse] = []
 
 class CourseWithEnrollments(CourseResponse):
     enrollments: List[EnrollmentResponse] = []
 
-# Esquemas para respuestas de API
 class APIResponse(BaseModel):
     message: str
     data: Optional[dict | list] = None

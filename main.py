@@ -6,7 +6,6 @@ from app.routes import students, courses, enrollments
 from app.database.database import init_database
 from app.models.schemas import HealthResponse, APIResponse
 
-# Crear la aplicación FastAPI
 app = FastAPI(
     title="SmartLogix API",
     description="API REST para gestión de estudiantes y cursos online - Sistema completo",
@@ -15,7 +14,6 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configurar CORS para permitir requests desde cualquier origen
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,20 +22,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir rutas
 app.include_router(students.router)
 app.include_router(courses.router)
 app.include_router(enrollments.router)
 
-# Incluir ruta de sincronización
 from app.routes import sync
 app.include_router(sync.router)
 
-# Incluir rutas de IA
 from app.routes import ai_success_predictor
 app.include_router(ai_success_predictor.router, prefix="/ai", tags=["🧠 AI Success Predictor - Datos Reales"])
 
-# Rutas principales
 @app.get("/", response_model=APIResponse)
 async def root():
     """Ruta principal de bienvenida"""
@@ -90,7 +84,6 @@ async def test_endpoint():
         }
     )
 
-# Evento de inicio de la aplicación
 @app.on_event("startup")
 async def startup_event():
     """Inicializar la base de datos al iniciar la aplicación"""
@@ -101,16 +94,14 @@ async def startup_event():
     else:
         print("⚠️ SmartLogix API iniciada con advertencias de base de datos")
 
-# Configuración para Cloud Run
 if __name__ == "__main__":
     import uvicorn
     
-    # Cloud Run asigna automáticamente el puerto via la variable de entorno PORT
     port = int(os.environ.get("PORT", 8000))
     
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=port,
-        reload=False  # Deshabilitado en producción
+        reload=False  
     )

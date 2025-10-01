@@ -10,21 +10,15 @@ import re
 router = APIRouter()
 
 def find_student_flexible(db: Session, identifier: str) -> Optional[Student]:
-    """
-    Buscar estudiante por ID, nombre o email de forma flexible
-    """
-    # Intentar buscar por ID primero (si es numérico)
     if identifier.isdigit():
         student = db.query(Student).filter(Student.id == int(identifier)).first()
         if student:
             return student
     
-    # Buscar por email exacto
     student = db.query(Student).filter(Student.correo.ilike(identifier)).first()
     if student:
         return student
     
-    # Buscar por nombre (coincidencia parcial, insensible a mayúsculas)
     student = db.query(Student).filter(Student.nombre.ilike(f"%{identifier}%")).first()
     if student:
         return student
@@ -32,10 +26,6 @@ def find_student_flexible(db: Session, identifier: str) -> Optional[Student]:
     return None
 
 def calculate_student_academic_metrics(db: Session, student_id: int) -> Dict:
-    """
-    Calcular métricas académicas reales del estudiante basadas en enrollments
-    """
-    # Obtener todas las matriculaciones del estudiante
     enrollments = db.query(Enrollment).filter(
         Enrollment.student_id == student_id
     ).all()
@@ -51,18 +41,15 @@ def calculate_student_academic_metrics(db: Session, student_id: int) -> Dict:
             "notas": []
         }
     
-    # Métricas básicas
     total_cursos = len(enrollments)
     cursos_aprobados = len([e for e in enrollments if e.estado == "Aprobado"])
     cursos_desaprobados = len([e for e in enrollments if e.estado == "Desaprobado"])
     cursos_en_progreso = len([e for e in enrollments if e.estado == "Cursando"])
     cursos_retirados = len([e for e in enrollments if e.estado == "Retirado"])
     
-    # Calcular promedio de notas
     notas = [e.puntaje for e in enrollments if e.puntaje is not None]
     promedio_general = round(statistics.mean(notas), 1) if notas else 0.0
     
-    # Tasa de aprobación
     cursos_finalizados = cursos_aprobados + cursos_desaprobados
     tasa_aprobacion = round((cursos_aprobados / cursos_finalizados * 100), 1) if cursos_finalizados > 0 else 0.0
     
@@ -81,13 +68,9 @@ def calculate_student_academic_metrics(db: Session, student_id: int) -> Dict:
     }
 
 def analyze_learning_trend(notas: List[float]) -> Dict:
-    """
-    Analizar tendencia de aprendizaje del estudiante
-    """
     if len(notas) < 2:
         return {"tendencia": "Insuficientes datos", "direccion": "neutral"}
     
-    # Calcular tendencia simple comparando primera mitad vs segunda mitad
     mitad = len(notas) // 2
     primera_mitad = statistics.mean(notas[:mitad]) if mitad > 0 else 0
     segunda_mitad = statistics.mean(notas[mitad:]) if mitad < len(notas) else 0
@@ -106,12 +89,8 @@ def analyze_learning_trend(notas: List[float]) -> Dict:
         return {"tendencia": "Declinando significativamente", "direccion": "negativa"}
 
 def predict_course_success(student_metrics: Dict, course: Course) -> Dict:
-    """
-    Algoritmo de IA para predecir éxito en un curso específico
-    """
-    base_probability = 50.0  # Probabilidad base
+    base_probability = 50.0  
     
-    # Factor 1: Promedio general del estudiante (peso: 40%)
     if student_metrics["promedio_general"] >= 16:
         base_probability += 25
     elif student_metrics["promedio_general"] >= 13:
@@ -121,7 +100,6 @@ def predict_course_success(student_metrics: Dict, course: Course) -> Dict:
     else:
         base_probability -= 10
     
-    # Factor 2: Tasa de aprobación (peso: 30%)
     if student_metrics["tasa_aprobacion"] >= 80:
         base_probability += 20
     elif student_metrics["tasa_aprobacion"] >= 60:
@@ -131,7 +109,6 @@ def predict_course_success(student_metrics: Dict, course: Course) -> Dict:
     else:
         base_probability -= 15
     
-    # Factor 3: Experiencia (número de cursos completados) (peso: 20%)
     if student_metrics["cursos_completados"] >= 5:
         base_probability += 15
     elif student_metrics["cursos_completados"] >= 3:
@@ -139,18 +116,15 @@ def predict_course_success(student_metrics: Dict, course: Course) -> Dict:
     elif student_metrics["cursos_completados"] >= 1:
         base_probability += 5
     
-    # Factor 4: Consistencia (diferencia entre nota máxima y mínima) (peso: 10%)
     if student_metrics["notas"]:
         variabilidad = student_metrics["nota_maxima"] - student_metrics["nota_minima"]
-        if variabilidad <= 3:  # Muy consistente
+        if variabilidad <= 3: 
             base_probability += 10
-        elif variabilidad <= 5:  # Moderadamente consistente
+        elif variabilidad <= 5:  
             base_probability += 5
     
-    # Asegurar que esté en rango válido
     probability = max(15, min(95, base_probability))
     
-    # Predecir nota esperada basada en promedio histórico
     nota_esperada = student_metrics["promedio_general"]
     if probability >= 80:
         nota_esperada += 1.5
@@ -171,7 +145,6 @@ def predict_course_success(student_metrics: Dict, course: Course) -> Dict:
     }
 
 def get_difficulty_match(probability: float) -> str:
-    """Determinar el nivel de dificultad apropiado"""
     if probability >= 85:
         return "Perfecta - Curso ideal para ti"
     elif probability >= 70:
@@ -184,10 +157,8 @@ def get_difficulty_match(probability: float) -> str:
         return "Muy desafiante - Recomendamos prerrequisitos"
 
 def get_risk_assessment(student_metrics: Dict) -> Dict:
-    """Evaluar el riesgo académico del estudiante"""
     risk_score = 0
     
-    # Factores de riesgo
     if student_metrics["promedio_general"] < 11:
         risk_score += 30
     elif student_metrics["promedio_general"] < 13:
@@ -204,7 +175,6 @@ def get_risk_assessment(student_metrics: Dict) -> Dict:
     if student_metrics["cursos_en_progreso"] > 3:
         risk_score += 10
     
-    # Determinar nivel de riesgo
     if risk_score >= 50:
         return {"level": "Alto", "description": "Requiere intervención académica", "color": "red"}
     elif risk_score >= 25:
@@ -219,28 +189,10 @@ async def predict_student_academic_success(
     max_recommendations: int = Query(5, description="Máximo número de recomendaciones"),
     db: Session = Depends(get_db)
 ):
-    """
-    🤖 SmartLogix Academic Success Predictor
     
-    Analiza el rendimiento académico histórico de un estudiante y predice su probabilidad
-    de éxito en futuros cursos usando algoritmos de Machine Learning.
-    
-    Parámetros:
-    - student_identifier: ID, nombre o email del estudiante
-    - include_recommendations: Si incluir recomendaciones de cursos (default: True)
-    - max_recommendations: Número máximo de recomendaciones (default: 5)
-    
-    Busca estudiantes por:
-    - ID: "123"
-    - Email: "juan.perez@smartlogix.edu"
-    - Nombre: "Juan Pérez" o "Juan"
-    """
-    
-    # Buscar estudiante de forma flexible
     student = find_student_flexible(db, student_identifier)
     
     if not student:
-        # Obtener lista de estudiantes disponibles para ayudar
         available_students = db.query(Student).limit(5).all()
         return {
             "error": "Estudiante no encontrado",
@@ -253,18 +205,14 @@ async def predict_student_academic_success(
             "example_searches": ["1", "juan.perez@smartlogix.edu", "Juan"]
         }
     
-    # Calcular métricas académicas reales
     academic_metrics = calculate_student_academic_metrics(db, student.id)
     
-    # Analizar tendencia de aprendizaje
     learning_trend = analyze_learning_trend(academic_metrics["notas"])
     
-    # Evaluación de riesgo
     risk_assessment = get_risk_assessment(academic_metrics)
     
-    # Preparar respuesta base
     response = {
-        "🤖 smartlogix_ai": "Academic Success Predictor v1.0",
+        "smartlogix_ai": "Academic Success Predictor v1.0",
         "student_info": {
             "id": student.id,
             "nombre": student.nombre,
@@ -295,9 +243,7 @@ async def predict_student_academic_success(
         }
     }
     
-    # Incluir recomendaciones si se solicita
     if include_recommendations and academic_metrics["total_cursos"] > 0:
-        # Obtener cursos no tomados por el estudiante
         taken_course_ids = db.query(Enrollment.course_id).filter(
             Enrollment.student_id == student.id
         ).subquery()
@@ -320,7 +266,6 @@ async def predict_student_academic_success(
                     "recommendation_reason": f"Basado en tu promedio de {academic_metrics['promedio_general']}/20 y tasa de aprobación del {academic_metrics['tasa_aprobacion']}%"
                 })
             
-            # Ordenar por probabilidad de éxito
             recommendations.sort(key=lambda x: float(x["success_probability"].rstrip('%')), reverse=True)
             
             response["ai_recommendations"] = {
