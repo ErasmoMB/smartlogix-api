@@ -73,10 +73,9 @@ async def get_students(skip: int = 0, limit: int = 100, db: Session = Depends(ge
         )
     except Exception as e:
         print(f"Error en get_students: {e}")
-        return APIResponse(
-            message="Error al obtener estudiantes",
-            data=[],
-            total=0
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al obtener estudiantes: {str(e)}"
         )
 
 @router.get("/{student_id}", response_model=APIResponse)

@@ -137,38 +137,43 @@ async def update_enrollment(enrollment_id: int, enrollment_update: EnrollmentUpd
 @router.get("/", response_model=APIResponse)
 async def get_enrollments(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Obtener lista de todas las matrículas"""
-    enrollments = db.query(Enrollment, Student, Course).join(
-        Student, Enrollment.student_id == Student.id
-    ).join(
-        Course, Enrollment.course_id == Course.id
-    ).offset(skip).limit(limit).all()
-    
-    total = db.query(Enrollment).count()
-    
-    enrollments_data = []
-    for enrollment, student, course in enrollments:
-        enrollments_data.append({
-            "enrollment_id": enrollment.id,
-            "student": {
-                "id": student.id,
-                "nombre": student.nombre,
-                "correo": student.correo
-            },
-            "course": {
-                "id": course.id,
-                "titulo": course.titulo,
-                "descripcion": course.descripcion
-            },
-            "estado": enrollment.estado,
-            "puntaje": enrollment.puntaje,
-            "fecha_matricula": enrollment.fecha_matricula.isoformat()
-        })
-    
-    return APIResponse(
-        message="Lista de matrículas obtenida exitosamente",
-        data=enrollments_data,
-        total=total
-    )
+    try:
+        enrollments = db.query(Enrollment, Student, Course).join(
+            Student, Enrollment.student_id == Student.id
+        ).join(
+            Course, Enrollment.course_id == Course.id
+        ).offset(skip).limit(limit).all()
+        
+        enrollments_data = []
+        for enrollment, student, course in enrollments:
+            enrollments_data.append({
+                "enrollment_id": enrollment.id,
+                "student": {
+                    "id": student.id,
+                    "nombre": student.nombre,
+                    "correo": student.correo
+                },
+                "course": {
+                    "id": course.id,
+                    "titulo": course.titulo,
+                    "descripcion": course.descripcion
+                },
+                "estado": enrollment.estado,
+                "puntaje": enrollment.puntaje,
+                "fecha_matricula": enrollment.fecha_matricula.isoformat()
+            })
+        
+        return APIResponse(
+            message="Lista de matrículas obtenida exitosamente",
+            data=enrollments_data,
+            total=len(enrollments_data)
+        )
+    except Exception as e:
+        print(f"Error en get_enrollments: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al obtener matrículas: {str(e)}"
+        )
 
 @router.get("/{enrollment_id}", response_model=APIResponse)
 async def get_enrollment(enrollment_id: int, db: Session = Depends(get_db)):

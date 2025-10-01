@@ -46,23 +46,29 @@ async def create_course(course: CourseCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=APIResponse)
 async def get_courses(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Obtener lista de cursos"""
-    courses = db.query(Course).offset(skip).limit(limit).all()
-    total = db.query(Course).count()
-    
-    courses_data = []
-    for course in courses:
-        courses_data.append({
-            "id": course.id,
-            "titulo": course.titulo,
-            "descripcion": course.descripcion,
-            "fecha_creacion": course.fecha_creacion.isoformat()
-        })
-    
-    return APIResponse(
-        message="Lista de cursos obtenida exitosamente",
-        data=courses_data,
-        total=total
-    )
+    try:
+        courses = db.query(Course).offset(skip).limit(limit).all()
+        
+        courses_data = []
+        for course in courses:
+            courses_data.append({
+                "id": course.id,
+                "titulo": course.titulo,
+                "descripcion": course.descripcion,
+                "fecha_creacion": course.fecha_creacion.isoformat()
+            })
+        
+        return APIResponse(
+            message="Lista de cursos obtenida exitosamente",
+            data=courses_data,
+            total=len(courses_data)
+        )
+    except Exception as e:
+        print(f"Error en get_courses: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al obtener cursos: {str(e)}"
+        )
 
 @router.get("/{course_id}", response_model=APIResponse)
 async def get_course(course_id: int, db: Session = Depends(get_db)):
