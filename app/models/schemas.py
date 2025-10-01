@@ -65,7 +65,7 @@ class CourseWithEnrollments(CourseResponse):
 # Esquemas para respuestas de API
 class APIResponse(BaseModel):
     message: str
-    data: Optional[dict] = None
+    data: Optional[dict | list] = None
     total: Optional[int] = None
 
 class HealthResponse(BaseModel):
