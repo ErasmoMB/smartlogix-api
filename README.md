@@ -101,7 +101,7 @@ GET    /sync/status            # Verificar estado de sincronización
 ### **🤖 IA Success Predictor**
 ```http
 GET    /ai/predict-success/{student_identifier}
-# Parámetros:
+**Parámetros:**
 #   student_identifier: ID (12), email (erasmo@...), nombre ("Erasmo")
 #   include_recommendations: true/false
 #   max_recommendations: 5
