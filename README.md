@@ -12,7 +12,7 @@
 > - 📊 **BigQuery** - Data Warehouse con sincronización automática en tiempo real
 > - 🤖 **IA Academic Success Predictor** - Machine Learning con datos reales del backend
 > - 🔄 **Pipeline Completo** - API → Cloud SQL → BigQuery → Looker Studio
-> - 📈 **Dashboard** - Visualizaciones en tiempo real con sistema educativo peruano (0-20)
+> - 📈 **Dashboard** - Visualizaciones en tiempo real (0-20)
 
 ---
 
@@ -44,8 +44,8 @@ Operations   (32/11/61)  ML Ready   Real-time
 - **CORS configurado** para integraciones frontend
 - **Manejo de errores** centralizado y profesional
 
-### **✅ Sistema Educativo Peruano**
-- **Calificaciones 0-20** (sistema real peruano)
+### **✅ Sistema Educativo**
+- **Calificaciones 0-20** 
 - **Estados académicos**: Cursando, Aprobado, Desaprobado, Retirado
 - **Emails institucionales** @smartlogix.edu
 - **Timestamps precisos** para auditoría completa
@@ -261,7 +261,7 @@ curl https://smartlogix-api-250805843264.us-central1.run.app/ai/predict-success/
 ✅ **Sincronización** automática Cloud SQL ↔ BigQuery  
 ✅ **IA predictiva** consumiendo datos reales del backend  
 ✅ **Dashboard** con visualizaciones en tiempo real  
-✅ **Sistema educativo peruano** (0-20) implementado  
+✅ **Sistema educativo** (0-20) implementado  
 ✅ **Arquitectura cloud-native** 100% Google Cloud  
 ✅ **Pipeline completo** desde transaccional hasta analítico  
 
