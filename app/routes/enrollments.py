@@ -13,7 +13,7 @@ router = APIRouter(prefix="/enrollments", tags=["enrollments"])
 
 @router.post("/", response_model=APIResponse, status_code=status.HTTP_201_CREATED)
 async def create_enrollment(enrollment: EnrollmentCreate, db: Session = Depends(get_db)):
-    """Matricular estudiante en un curso (asigna puntaje = 100)"""
+    """Matricular estudiante en un curso (asigna puntaje inicial = 20, sistema 0-20)"""
     
     # Verificar que el estudiante existe
     student = db.query(Student).filter(Student.id == enrollment.student_id).first()
@@ -43,12 +43,12 @@ async def create_enrollment(enrollment: EnrollmentCreate, db: Session = Depends(
             detail="El estudiante ya está matriculado en este curso"
         )
     
-    # Crear nueva matrícula con puntaje inicial = 100
+    # Crear nueva matrícula con puntaje inicial = 20 (sistema educativo peruano)
     db_enrollment = Enrollment(
         student_id=enrollment.student_id,
         course_id=enrollment.course_id,
-        estado="Activo",
-        puntaje=100  # Regla de negocio: puntaje inicial = 100
+        estado="Cursando",
+        puntaje=20  # Regla de negocio: puntaje inicial = 20 (escala 0-20)
     )
     
     db.add(db_enrollment)
@@ -85,7 +85,7 @@ async def create_enrollment(enrollment: EnrollmentCreate, db: Session = Depends(
 
 @router.put("/{enrollment_id}", response_model=APIResponse)
 async def update_enrollment(enrollment_id: int, enrollment_update: EnrollmentUpdate, db: Session = Depends(get_db)):
-    """Cambiar estado de matrícula (ej. a 'Inactivo')"""
+    """Cambiar estado de matrícula (ej. a 'Aprobado', 'Desaprobado', 'Retirado')"""
     
     # Buscar la matrícula
     enrollment = db.query(Enrollment).filter(Enrollment.id == enrollment_id).first()
@@ -95,8 +95,8 @@ async def update_enrollment(enrollment_id: int, enrollment_update: EnrollmentUpd
             detail="Matrícula no encontrada"
         )
     
-    # Validar estados permitidos
-    valid_states = ["Activo", "Inactivo", "Completado", "Abandonado"]
+    # Validar estados permitidos (sistema educativo peruano)
+    valid_states = ["Cursando", "Aprobado", "Desaprobado", "Retirado"]
     if enrollment_update.estado not in valid_states:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

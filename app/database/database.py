@@ -31,7 +31,12 @@ class DatabaseConfig:
 
 # Crear engine de SQLAlchemy
 def create_database_engine():
-    database_url = DatabaseConfig.get_database_url()
+    # Priorizar DATABASE_URL si está definida (para Cloud Run)
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        database_url = DatabaseConfig.get_database_url()
+    
+    print(f"🔗 Conectando a: {database_url.replace(DatabaseConfig.DB_PASSWORD, '***')}")
     
     # Configuración del engine para Cloud Run
     engine = create_engine(

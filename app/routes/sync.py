@@ -14,31 +14,58 @@ PROJECT_ID = "clever-gadget-471116-m6"
 DATASET_ID = "academy_dataset"
 
 def sync_table_to_bigquery(table_name: str, data: list):
-    """Sincronizar una tabla específica a BigQuery"""
+    """Sincronizar una tabla específica a BigQuery usando TRUNCATE para evitar streaming buffer"""
     try:
+        print(f"🔄 Iniciando sincronización de {table_name} con {len(data)} registros")
+        
         # Configurar cliente BigQuery con región US
         client = bigquery.Client(project=PROJECT_ID, location="US")
         
-        # Limpiar tabla en BigQuery
-        delete_query = f"DELETE FROM `{PROJECT_ID}.{DATASET_ID}.{table_name}` WHERE TRUE"
-        client.query(delete_query).result()
-        
         if not data:
+            print(f"⚠️ No hay datos para {table_name}")
             return True
-            
-        # Insertar datos nuevos
+        
+        # Usar TRUNCATE en lugar de DELETE para evitar problemas de streaming buffer
+        try:
+            truncate_query = f"TRUNCATE TABLE `{PROJECT_ID}.{DATASET_ID}.{table_name}`"
+            client.query(truncate_query).result()
+            print(f"🗑️ Tabla {table_name} truncada exitosamente")
+        except Exception as truncate_error:
+            print(f"⚠️ TRUNCATE falló: {truncate_error}")
+            print(f"🔄 Intentando con DELETE (puede fallar por streaming buffer)")
+            try:
+                delete_query = f"DELETE FROM `{PROJECT_ID}.{DATASET_ID}.{table_name}` WHERE TRUE"
+                client.query(delete_query).result()
+                print(f"🗑️ DELETE exitoso para {table_name}")
+            except Exception as delete_error:
+                print(f"❌ DELETE también falló: {delete_error}")
+                print(f"⚠️ Continuando con inserción (pueden haber duplicados)")
+        
+        # Insertar todos los datos de una vez
         table_ref = client.dataset(DATASET_ID).table(table_name)
+        print(f"📥 Insertando {len(data)} registros en {table_name}")
+        
         errors = client.insert_rows_json(table_ref, data)
         
         if errors:
             print(f"❌ Errores en {table_name}: {errors}")
-            return False
+            
+            # Mostrar algunos errores para debugging
+            for i, error in enumerate(errors[:5]):  # Solo primeros 5 errores
+                print(f"   Error {i+1}: {error}")
+            
+            if len(errors) < len(data):
+                print(f"⚠️ Inserción parcial: {len(data) - len(errors)}/{len(data)} registros exitosos")
+                return False
+            else:
+                print(f"❌ Falló completamente la inserción")
+                return False
         else:
-            print(f"✅ {table_name}: {len(data)} registros sincronizados")
+            print(f"✅ {table_name}: {len(data)} registros sincronizados exitosamente")
             return True
             
     except Exception as e:
-        print(f"❌ Error sincronizando {table_name}: {e}")
+        print(f"❌ Error general sincronizando {table_name}: {e}")
         return False
 
 @router.post("/bigquery")

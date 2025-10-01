@@ -1,13 +1,7 @@
-"""
-SmartLogix API - Sistema de gestión académica
-API REST completa para administrar estudiantes, cursos y matrículas
-"""
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import os
-
-# Importar rutas
 from app.routes import students, courses, enrollments
 from app.database.database import init_database
 from app.models.schemas import HealthResponse, APIResponse
@@ -40,9 +34,8 @@ from app.routes import sync
 app.include_router(sync.router)
 
 # Incluir rutas de IA
-from app.routes import ai_recommendations, ai_demo
-app.include_router(ai_recommendations.router, prefix="/ai", tags=["AI & Machine Learning"])
-app.include_router(ai_demo.router, prefix="/ai-demo", tags=["🤖 AI Demo - Funcionando 100%"])
+from app.routes import ai_success_predictor
+app.include_router(ai_success_predictor.router, prefix="/ai", tags=["🧠 AI Success Predictor - Datos Reales"])
 
 # Rutas principales
 @app.get("/", response_model=APIResponse)
