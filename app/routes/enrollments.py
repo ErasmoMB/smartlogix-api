@@ -55,6 +55,14 @@ async def create_enrollment(enrollment: EnrollmentCreate, db: Session = Depends(
     db.commit()
     db.refresh(db_enrollment)
     
+    # 🚀 SINCRONIZAR AUTOMÁTICAMENTE A BIGQUERY
+    try:
+        import requests
+        sync_response = requests.post("https://smartlogix-api-250805843264.us-central1.run.app/sync/bigquery", timeout=10)
+        print(f"🔄 Sincronización automática: {sync_response.status_code}")
+    except Exception as e:
+        print(f"⚠️ Error en sincronización automática: {e}")
+    
     return APIResponse(
         message="Estudiante matriculado exitosamente",
         data={

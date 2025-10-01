@@ -35,6 +35,15 @@ app.include_router(students.router)
 app.include_router(courses.router)
 app.include_router(enrollments.router)
 
+# Incluir ruta de sincronización
+from app.routes import sync
+app.include_router(sync.router)
+
+# Incluir rutas de IA
+from app.routes import ai_recommendations, ai_demo
+app.include_router(ai_recommendations.router, prefix="/ai", tags=["AI & Machine Learning"])
+app.include_router(ai_demo.router, prefix="/ai-demo", tags=["🤖 AI Demo - Funcionando 100%"])
+
 # Rutas principales
 @app.get("/", response_model=APIResponse)
 async def root():

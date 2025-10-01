@@ -1,246 +1,104 @@
-# SmartLogix API - Sistema Completo de Gestión Académica
+# SmartLogix API
 
-API REST completa para el parcial de Tecnologías Emergentes. Sistema de gestión de estudiantes, cursos y matrículas con integración completa a Google Cloud Platform.
+API REST completa para gestión de estudiantes y cursos con integración de IA y Google Cloud Platform.
 
-## 🎯 Características del Sistema
+## 🚀 Características
 
-- ✅ **API REST completa** con FastAPI
-- ✅ **Base de datos en Cloud SQL** (PostgreSQL)
-- ✅ **Todas las rutas requeridas** del parcial
-- ✅ **Lógica de negocio implementada** (puntajes, estados)
-- ✅ **Preparado para BigQuery** 
-- ✅ **Deployment en Cloud Run**
-- ✅ **Documentación automática** (Swagger/ReDoc)
+- **API REST** completa con FastAPI
+- **Base de datos** Cloud SQL PostgreSQL
+- **Sincronización** automática con BigQuery
+- **IA integrada** para recomendaciones inteligentes
+- **Despliegue** en Google Cloud Run
+- **Dashboard** analytics en Looker Studio
 
-## 📋 Endpoints Implementados
+## 📋 Endpoints Principales
 
 ### Estudiantes
-- `POST /students` → Registrar estudiante
-- `GET /students` → Listar estudiantes
-- `GET /students/{id}` → Obtener estudiante
-- `GET /students/{id}/enrollments` → Cursos del estudiante
+- `GET /students/` - Listar estudiantes
+- `POST /students/` - Crear estudiante
+- `GET /students/{id}` - Obtener estudiante
+- `PUT /students/{id}` - Actualizar estudiante
+- `DELETE /students/{id}` - Eliminar estudiante
 
 ### Cursos
-- `POST /courses` → Registrar curso
-- `GET /courses` → Listar cursos  
-- `GET /courses/{id}` → Obtener curso
+- `GET /courses/` - Listar cursos
+- `POST /courses/` - Crear curso
+- `GET /courses/{id}` - Obtener curso
+- `PUT /courses/{id}` - Actualizar curso
+- `DELETE /courses/{id}` - Eliminar curso
 
 ### Matrículas
-- `POST /enrollments` → Matricular estudiante (puntaje = 100)
-- `PUT /enrollments/{id}` → Cambiar estado (ej. "Inactivo")
-- `GET /enrollments` → Listar matrículas
-- `GET /enrollments/{id}` → Obtener matrícula
+- `GET /enrollments/` - Listar matrículas
+- `POST /enrollments/` - Crear matrícula
+- `DELETE /enrollments/{id}` - Eliminar matrícula
 
-### Sistema
-- `GET /` → Información de la API
-- `GET /health` → Estado de salud
-- `GET /test` → Endpoint de pruebas
+### Sincronización
+- `POST /sync/all` - Sincronizar todo con BigQuery
+- `GET /sync/status` - Estado de sincronización
 
-## 🚀 Deployment en Google Cloud
+### IA & Recomendaciones
+- `GET /ai-demo/recommend/{student_id}` - Recomendaciones inteligentes
+- `GET /ai-demo/analytics/{student_id}` - Analytics predictivo
+- `GET /ai-demo/demo-all` - Demo completo de IA
 
-### 1. Configurar Cloud SQL
+## 🛠️ Instalación y Uso
 
+### Requisitos
+- Python 3.11+
+- Google Cloud SDK
+- Docker (opcional)
+
+### Configuración local
 ```bash
-# 1. Crear instancia de Cloud SQL (PostgreSQL)
-gcloud sql instances create smartlogix-instance \
-    --database-version=POSTGRES_13 \
-    --tier=db-f1-micro \
-    --region=us-central1
+# Crear entorno virtual
+python -m venv env
+env\Scripts\activate
 
-# 2. Crear base de datos
-gcloud sql databases create smartlogix_db \
-    --instance=smartlogix-instance
-
-# 3. Crear usuario
-gcloud sql users create smartlogix_user \
-    --instance=smartlogix-instance \
-    --password=TU_PASSWORD_SEGURO
-
-# 4. Ejecutar script SQL para crear tablas
-gcloud sql connect smartlogix-instance --user=smartlogix_user
-# Luego ejecutar el contenido de sql/create_tables.sql
-```
-
-### 2. Desplegar en Cloud Run
-
-```bash
-# 1. Configurar variables de entorno
-export PROJECT_ID=tu-proyecto-gcp
-export CLOUD_SQL_CONNECTION_NAME=${PROJECT_ID}:us-central1:smartlogix-instance
-
-# 2. Deployment directo desde código
-gcloud run deploy smartlogix-api \
-    --source . \
-    --platform managed \
-    --region us-central1 \
-    --allow-unauthenticated \
-    --port 8000 \
-    --set-env-vars="CLOUD_SQL_CONNECTION_NAME=${CLOUD_SQL_CONNECTION_NAME}" \
-    --set-env-vars="DB_USER=smartlogix_user" \
-    --set-env-vars="DB_PASSWORD=TU_PASSWORD_SEGURO" \
-    --set-env-vars="DB_NAME=smartlogix_db" \
-    --add-cloudsql-instances ${CLOUD_SQL_CONNECTION_NAME}
-
-# 3. Verificar deployment
-gcloud run services describe smartlogix-api \
-    --platform managed \
-    --region us-central1 \
-    --format 'value(status.url)'
-```
-
-### 3. Configurar BigQuery
-
-```bash
-# 1. Crear dataset
-bq mk --dataset ${PROJECT_ID}:academy_dataset
-
-# 2. Habilitar Data Transfer Service o crear Cloud Function
-# para sincronizar datos de Cloud SQL a BigQuery
-
-# 3. Crear tablas en BigQuery (misma estructura que Cloud SQL)
-# 4. Ejecutar queries del archivo sql/bigquery_queries.sql
-```
-
-### 4. Dashboard en Looker Studio
-
-1. Conectar Looker Studio a BigQuery
-2. Seleccionar dataset `academy_dataset`
-3. Crear gráficos según los queries proporcionados
-
-## 🧪 Pruebas Locales
-
-```bash
-# 1. Clonar repositorio
-git clone https://github.com/ErasmoMB/smartlogix-api.git
-cd smartlogix-api
-
-# 2. Instalar dependencias
+# Instalar dependencias
 pip install -r requirements.txt
 
-# 3. Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus configuraciones
-
-# 4. Ejecutar aplicación
-python main.py
+# Ejecutar API
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-La API estará disponible en `http://localhost:8000`
-
-## 📖 Documentación API
-
-- **Swagger UI**: `https://tu-url/docs`
-- **ReDoc**: `https://tu-url/redoc`
-- **OpenAPI Schema**: `https://tu-url/openapi.json`
-
-## 🧪 Ejemplos de Uso
-
-### Crear estudiante
+### Despliegue en Cloud Run
 ```bash
-curl -X POST https://tu-url/students \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nombre": "Juan Pérez",
-    "correo": "juan.perez@email.com"
-  }'
+# Construir y desplegar
+gcloud run deploy smartlogix-api --source . --region us-central1
 ```
 
-### Crear curso
-```bash
-curl -X POST https://tu-url/courses \
-  -H "Content-Type: application/json" \
-  -d '{
-    "titulo": "Introducción a Python",
-    "descripcion": "Curso básico de programación"
-  }'
-```
+## 🌐 URLs de Producción
 
-### Matricular estudiante
-```bash
-curl -X POST https://tu-url/enrollments \
-  -H "Content-Type: application/json" \
-  -d '{
-    "student_id": 1,
-    "course_id": 1
-  }'
-```
+- **API:** https://smartlogix-api-250805843264.us-central1.run.app/
+- **Documentación:** https://smartlogix-api-250805843264.us-central1.run.app/docs
+- **Dashboard:** [Looker Studio Dashboard]
 
-### Cambiar estado a Inactivo
-```bash
-curl -X PUT https://tu-url/enrollments/1 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "estado": "Inactivo"
-  }'
-```
+## 🔧 Tecnologías
 
-## 🏗️ Estructura del Proyecto
+- **Backend:** FastAPI, SQLAlchemy, PostgreSQL
+- **Cloud:** Google Cloud Run, Cloud SQL, BigQuery
+- **IA:** Motor de recomendaciones inteligente
+- **Contenedores:** Docker
+- **Analytics:** Looker Studio
 
-```
-smartlogix-api/
-├── app/
-│   ├── models/
-│   │   ├── models.py          # Modelos SQLAlchemy
-│   │   └── schemas.py         # Esquemas Pydantic
-│   ├── routes/
-│   │   ├── students.py        # Rutas de estudiantes
-│   │   ├── courses.py         # Rutas de cursos
-│   │   └── enrollments.py     # Rutas de matrículas
-│   └── database/
-│       └── database.py        # Configuración de BD
-├── sql/
-│   ├── create_tables.sql      # Script de creación
-│   └── bigquery_queries.sql   # Queries para BigQuery
-├── main.py                    # Aplicación principal
-├── requirements.txt           # Dependencias
-├── Dockerfile                 # Contenedor
-└── README.md                  # Esta documentación
-```
+## 📊 Base de Datos
 
-## 🎨 Funcionalidad Emergente con IA (Propuesta)
+### Modelos principales:
+- **Student:** Gestión de estudiantes
+- **Course:** Gestión de cursos  
+- **Enrollment:** Gestión de matrículas
 
-### Predicción de Deserción con Vertex AI
+### Sincronización automática:
+Los datos se sincronizan automáticamente con BigQuery para analytics avanzados.
 
-Modelo de machine learning que predice la probabilidad de deserción de estudiantes basado en:
-- Puntajes históricos
-- Tiempo en el curso
-- Patrones de actividad
-- Comparación con cohortes similares
+## 🤖 IA Integrada
 
-```python
-# Integración con Vertex AI para predicción
-@app.post("/predict/desertion")
-async def predict_student_desertion(student_id: int):
-    # Obtener datos del estudiante
-    # Llamar modelo de Vertex AI
-    # Retornar probabilidad de deserción
-    pass
-```
-
-## � Métricas de BigQuery
-
-El sistema incluye queries optimizadas para:
-- Total de estudiantes activos por curso
-- Promedio de puntaje por curso  
-- Análisis de deserción
-- Tendencias temporales
-- Rankings de estudiantes
-
-## ⚠️ Consideraciones de Producción
-
-- Configurar SSL/TLS en Cloud SQL
-- Implementar autenticación JWT
-- Agregar rate limiting
-- Configurar monitoring con Cloud Logging
-- Implementar backup automático
-- Configurar alertas de salud
-
-## 🤝 Equipo de Desarrollo
-
-- **[Tu Nombre]** - Desarrollo Full Stack
-- **[Compañero 1]** - Base de datos y BigQuery
-- **[Compañero 2]** - Frontend y Dashboard
+El sistema incluye un motor de IA que:
+- Analiza perfiles de estudiantes
+- Genera recomendaciones personalizadas de cursos
+- Proporciona analytics predictivos
+- Calcula scores de compatibilidad
 
 ---
 
-**SmartLogix API v2.0** - Sistema completo para gestión académica online 🎓
+**Desarrollado para Tecnologías Emergentes - SmartLogix Academy**
