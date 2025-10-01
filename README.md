@@ -101,9 +101,6 @@ GET    /sync/status            # Verificar estado de sincronización
 ### **🤖 IA Success Predictor**
 ```http
 GET /ai/predict-success/{student_identifier}
-Parámetros de consulta opcionales:
-# include_recommendations: true/false
-# max_recommendations: 5 (número)
 ```
 
 ## 🌐 **URLs de Producción**
