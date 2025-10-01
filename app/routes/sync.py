@@ -16,7 +16,8 @@ DATASET_ID = "academy_dataset"
 def sync_table_to_bigquery(table_name: str, data: list):
     """Sincronizar una tabla específica a BigQuery"""
     try:
-        client = bigquery.Client(project=PROJECT_ID)
+        # Configurar cliente BigQuery con región US
+        client = bigquery.Client(project=PROJECT_ID, location="US")
         
         # Limpiar tabla en BigQuery
         delete_query = f"DELETE FROM `{PROJECT_ID}.{DATASET_ID}.{table_name}` WHERE TRUE"
@@ -115,7 +116,8 @@ async def sync_all_to_bigquery():
 async def sync_status():
     """Verificar estado de sincronización"""
     try:
-        client = bigquery.Client(project=PROJECT_ID)
+        # Configurar cliente BigQuery con región US
+        client = bigquery.Client(project=PROJECT_ID, location="US")
         
         # Contar registros en BigQuery
         counts = {}
